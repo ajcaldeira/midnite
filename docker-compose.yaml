@@ -1,0 +1,44 @@
+
+services:
+  app:
+    build: .
+    container_name: midnite_backend_container
+    command: ["sh", "-c", "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"]
+    environment:
+      MIDNITE_API_URL: "http://app:8000"  # Use service name for internal communication
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+      - "5678:5678"
+    volumes:
+      - ./tests:/app/tests
+    networks:
+      - midnite_network
+
+  db:
+    image: postgres:latest
+    container_name: postgres-midnite
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: project-midnite
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - midnite_network
+
+volumes:
+  db_data:
+
+networks:
+  midnite_network:
+    driver: bridge

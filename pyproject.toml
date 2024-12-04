@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "midnite"
+version = "0.1.0"
+description = ""
+authors = ["Angelo Caldeira <angelo.josey@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = {extras = ["standard"], version = "^0.115.5"}
+loguru = "^0.7.2"
+pytest = "^8.3.4"
+sqlalchemy = "^2.0.36"
+alembic = "^1.14.0"
+python-dotenv = "^1.0.1"
+psycopg2 = "^2.9.10"
+pydantic = {extras = ["email"], version = "^2.10.2"}
+
+[tool.mypy]
+python_version = "3.11"
+plugins = [ "pydantic.mypy",]
+ignore_missing_imports = true
+exclude = ["alembic/.*"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
