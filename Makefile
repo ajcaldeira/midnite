@@ -18,21 +18,21 @@ run-tests: rebuild-system
 
 .PHONY: start-database
 start-database:
-	docker-compose up -d db
+	docker compose up -d db
 
 .PHONY: stop-database
 stop-database:
-	docker-compose stop db
+	docker compose stop db
 
 .PHONY: kill-system
 kill-system:
-	docker-compose down --volumes --remove-orphans
+	docker compose down --volumes --remove-orphans
 
 
 .PHONY: rebuild-system
 rebuild-system: kill-system
-	docker-compose build --no-cache
-	docker-compose up -d
+	docker compose build --no-cache
+	docker compose up -d
 	-alembic upgrade head
 	poetry run python tests/populate.py
 
