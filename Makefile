@@ -36,5 +36,3 @@ rebuild-system: kill-system
 
 .PHONY: run-me
 run-me: rebuild-system
-	docker exec midnite_backend_container python -m main
-	$(MAKE) kill-system
