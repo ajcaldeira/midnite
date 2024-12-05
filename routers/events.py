@@ -1,13 +1,14 @@
-from fastapi import routing
+from fastapi import routing, Depends
 from midnite.models.validation.event import EventPayload, EventResponse
-from midnite.methods.code_handler import FraudDetection
+from midnite.methods.code_handler import FraudDetection, get_fraud_detection
 
-fd = FraudDetection()
 router = routing.APIRouter()
 
 
 @router.post("/event")
-def read_event(payload: EventPayload) -> EventResponse:
+def read_event(
+    payload: EventPayload, fd: FraudDetection = Depends(get_fraud_detection)
+) -> EventResponse:
     """
     Event endpoint that handles the fraud detection for withdraws and deposits
     """

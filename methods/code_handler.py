@@ -11,6 +11,8 @@ from midnite.config.constants import (
 )
 from midnite.models.database.users import Transactions
 from sqlalchemy.orm import Session
+from loguru import logger
+from sqlalchemy.exc import SQLAlchemyError
 
 
 class FraudDetection:
@@ -28,9 +30,13 @@ class FraudDetection:
             int | None: The alert code if the withdrawl limit is exceeded
 
         """
-        if amount > WITHDRAWL_LIMIT:
-            return AlertCodes.CODE_1100
-        return None
+        try:
+            if amount > WITHDRAWL_LIMIT:
+                return AlertCodes.CODE_1100
+            return None
+        except Exception as error:
+            logger.error(f"An unknown error occured: {error}")
+            raise
 
     def check_consecutive_withdrawls(self, user_id: str) -> int | None:
         """
@@ -43,23 +49,34 @@ class FraudDetection:
             int | None: The alert code if the consecutive withdrawls limit is exceeded
         """
         # Query the Transactions table, order by second_received, filter by user_id
-        transactions = (
-            self.db_session.query(Transactions)
-            .filter(
-                Transactions.user_id == user_id,
+        try:
+            transactions = (
+                self.db_session.query(Transactions)
+                .filter(
+                    Transactions.user_id == user_id,
+                )
+                .order_by(Transactions.second_received.desc())
+                .limit(2)
             )
-            .order_by(Transactions.second_received.desc())
-            .limit(2)
-        )
-        # Check each transaction for withdraws and count them
-        withdraw_count = 0
-        for transaction in transactions:
-            if transaction.transaction_type == TransactionTypes.WITHDRAW:
-                withdraw_count += 1
-        # Add 1 here to account for the current transaction that would be processed
-        if withdraw_count + 1 >= CONSECUTIVE_WITHDRAWLS_LIMIT:
-            return AlertCodes.CODE_30
-        return None
+            if transactions is None or transactions == []:
+                return None
+            # Check each transaction for withdraws and count them
+            withdraw_count = 0
+            for transaction in transactions:
+                if transaction.transaction_type == TransactionTypes.WITHDRAW:
+                    withdraw_count += 1
+            # Add 1 here to account for the current transaction that would be processed
+            if withdraw_count + 1 >= CONSECUTIVE_WITHDRAWLS_LIMIT:
+                return AlertCodes.CODE_30
+            return None
+
+        except SQLAlchemyError as error:
+            logger.error(f"An error occured while querying the database: {error}")
+            raise
+
+        except Exception as error:
+            logger.error(f"An unknown error occured: {error}")
+            raise
 
     def check_consecutive_increasing_deposits(
         self, user_id: str, deposit_amount: float
@@ -76,26 +93,35 @@ class FraudDetection:
         """
         # Query the Transactions table, order by second_received, filter by user_id and transaction_type
         # Get the last 2 transactions which are deposits
-        transactions = (
-            self.db_session.query(Transactions)
-            .filter(
-                Transactions.user_id == user_id,
-                Transactions.transaction_type == TransactionTypes.DEPOSIT,
+        try:
+            transactions = (
+                self.db_session.query(Transactions)
+                .filter(
+                    Transactions.user_id == user_id,
+                    Transactions.transaction_type == TransactionTypes.DEPOSIT,
+                )
+                .order_by(Transactions.second_received.desc())
+                .limit(CONSECUTIVE_INCREASING_DEPOSITS_LIMIT)
+                .all()
             )
-            .order_by(Transactions.second_received.desc())
-            .limit(CONSECUTIVE_INCREASING_DEPOSITS_LIMIT)
-            .all()
-        )
 
-        if len(transactions) == CONSECUTIVE_INCREASING_DEPOSITS_LIMIT:
-            last, second_last = transactions
-            if (
-                last.transaction_amount
-                > second_last.transaction_amount
-                < deposit_amount
-            ):
-                return AlertCodes.CODE_300
-        return None
+            if len(transactions) == CONSECUTIVE_INCREASING_DEPOSITS_LIMIT:
+                last, second_last = transactions
+                if (
+                    last.transaction_amount
+                    > second_last.transaction_amount
+                    < deposit_amount
+                ):
+                    return AlertCodes.CODE_300
+            return None
+
+        except SQLAlchemyError as error:
+            logger.error(f"An error occured while querying the database: {error}")
+            raise
+
+        except Exception as error:
+            logger.error(f"An unknown error occured: {error}")
+            raise
 
     def check_accumulate_deposit_amount_over_window(
         self, user_id: str, transaction_amount: float, second_received: int
@@ -112,29 +138,36 @@ class FraudDetection:
             int | None: The alert code if the accumulated deposit limit is exceeded
         """
         # Query the Transactions table, order by second_received, filter by user_id and transaction_type
-        transactions = (
-            self.db_session.query(Transactions)
-            .filter(
-                Transactions.user_id == user_id,
-                Transactions.transaction_type == TransactionTypes.DEPOSIT,
+        try:
+            transactions = (
+                self.db_session.query(Transactions)
+                .filter(
+                    Transactions.user_id == user_id,
+                    Transactions.transaction_type == TransactionTypes.DEPOSIT,
+                )
+                .order_by(Transactions.second_received.desc())
+                .limit(DEPOSIT_WINDOW_SECONDS)
+                .all()
             )
-            .order_by(Transactions.second_received.desc())
-            .limit(DEPOSIT_WINDOW_SECONDS)
-            .all()
-        )
 
-        # Identify those in the 30 second window
-        accumulating_deposit = transaction_amount
-        # Usint the most recent transaction, check if the difference between the current transaction and the last transaction is greater than 30 seconds
-        for transaction in transactions:
-            current_window = second_received - transaction.second_received
-            if current_window > DEPOSIT_WINDOW_SECONDS:
-                break
-            accumulating_deposit += transaction.transaction_amount
+            # Identify those in the 30 second window
+            accumulating_deposit = transaction_amount
+            # Usint the most recent transaction, check if the difference between the current transaction and the last transaction is greater than 30 seconds
+            for transaction in transactions:
+                current_window = second_received - transaction.second_received
+                if current_window > DEPOSIT_WINDOW_SECONDS:
+                    break
+                accumulating_deposit += transaction.transaction_amount
 
-        if accumulating_deposit > ACCUMULATE_DEPOSIT_LIMIT:
-            return AlertCodes.CODE_123
-        return None
+            if accumulating_deposit > ACCUMULATE_DEPOSIT_LIMIT:
+                return AlertCodes.CODE_123
+            return None
+        except SQLAlchemyError as error:
+            logger.error(f"An error occured while querying the database: {error}")
+            raise
+        except Exception as error:
+            logger.error(f"An unknown error occured: {error}")
+            raise
 
     def run_fraud_detection(
         self,
@@ -178,3 +211,7 @@ class FraudDetection:
                     f"Transaction type <{transaction_type}> not supported"
                 )
         return alert_codes
+
+
+def get_fraud_detection() -> FraudDetection:
+    return FraudDetection()

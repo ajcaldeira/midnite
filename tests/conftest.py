@@ -22,7 +22,6 @@ def test_db():
         yield db
     finally:
         db.query(TransactionsDBModel).delete()
-        db.query(UserDBModel).delete()
         db.commit()
 
 

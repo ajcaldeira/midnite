@@ -24,17 +24,19 @@ start-database:
 stop-database:
 	docker-compose stop db
 
-.PHONY: rebuild-system
-rebuild-system:
-	docker-compose down --volumes --remove-orphans
-	docker-compose build --no-cache
-	docker-compose up -d
-	-alembic upgrade head
-
 .PHONY: kill-system
 kill-system:
 	docker-compose down --volumes --remove-orphans
 
-.PHONY: migrate-database
-migrate-database:
-	docker-compose exec web poetry run python manage.py migrate
+
+.PHONY: rebuild-system
+rebuild-system: kill-system
+	docker-compose build --no-cache
+	docker-compose up -d
+	-alembic upgrade head
+	poetry run python tests/populate.py
+
+.PHONY: run-me
+run-me: rebuild-system
+	poetry run python -m main
+	$(MAKE) kill-system

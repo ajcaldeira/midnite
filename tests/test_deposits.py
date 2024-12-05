@@ -1,10 +1,7 @@
-def test_consecutive_increasing_deposits(
-    test_client, test_db, create_user, create_transaction
-):
+def test_consecutive_increasing_deposits(test_client, test_db, create_transaction):
     """Test consecutive increasing deposits."""
     # Arrange
     user_id = 1
-    create_user(user_id, "John Doe", "johndoe@example.com")
 
     create_transaction("1", "deposit", 50, 1, user_id)
     create_transaction("2", "deposit", 60, 3, user_id)
@@ -21,7 +18,7 @@ def test_consecutive_increasing_deposits(
 
 
 def test_accumulate_deposit_amount_over_window(
-    test_client, test_db, create_user, create_transaction
+    test_client, test_db, create_transaction
 ):
     """
     Test the accumulate deposit amount over a window
@@ -29,7 +26,6 @@ def test_accumulate_deposit_amount_over_window(
 
     # Arrange
     user_id = 1
-    create_user(user_id, "John Doe", "johndoe@example.com")
 
     create_transaction("1", "deposit", 150, 1, user_id)
     create_transaction("2", "deposit", 40, 9, user_id)
