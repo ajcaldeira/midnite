@@ -7,6 +7,10 @@ This guide provides multiple ways to run, test, and interact with the project.
 
 ## Running the project
 
+### Set up environment variables
+
+Make a copy of `.env.example` and name it `.env`. This already has the variables needed for running the application.
+
 ### 1. Using Docker
 
 Run the application using the following command:
