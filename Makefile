@@ -33,7 +33,7 @@ kill-system:
 rebuild-system: kill-system
 	docker compose build --no-cache
 	docker compose up -d
-	-alembic upgrade head
+	poetry run alembic upgrade head
 	poetry run python tests/populate.py
 
 .PHONY: run-me

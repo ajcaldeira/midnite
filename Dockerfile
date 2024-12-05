@@ -9,7 +9,7 @@ RUN poetry config virtualenvs.create false \
 
 COPY . /midnite/
 
-ENV PYTHONPATH=/midnite
+ENV PYTHONPATH=/
 EXPOSE 80
 EXPOSE 8000
 

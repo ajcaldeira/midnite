@@ -26,6 +26,12 @@ jobs:
       - name: Install Dependencies
         run: poetry install
 
+      - name: Print Python Path for Debugging
+        run: python -c "import sys; print(sys.path)"
+
+      - name: Find Midnite Directory in Filesystem
+        run: find / -name "midnite"
+
       - name: Run pre-commit
         run: make pre-commit
 
