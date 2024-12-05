@@ -26,11 +26,11 @@ jobs:
       - name: Install Dependencies
         run: poetry install
 
-      - name: Print Python Path for Debugging
-        run: python -c "import sys; print(sys.path)"
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=$PWD" >> $GITHUB_ENV
 
-      - name: Find Midnite Directory in Filesystem
-        run: find / -name "midnite"
+      - name: Print Python Path for Debugging
+        run: python -c "import sys; print(sys.path)""
 
       - name: Run pre-commit
         run: make pre-commit
