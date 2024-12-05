@@ -14,14 +14,14 @@ def read_event(
     """
     codes = fd.run_fraud_detection(
         payload.amount,
-        payload.user_id,
-        transaction_type=payload.type_,
-        second_received=payload.t,
+        str(payload.user_id),
+        transaction_type=str(payload.type_),
+        second_received=int(payload.t),
     )
-    codes = [c.value for c in codes if c is not None]
+    code_list = [c.value for c in codes if c is not None]
     alert_flag = True if codes else False
     return EventResponse(
         alert=alert_flag,
-        alert_codes=codes,
+        alert_codes=code_list,
         user_id=payload.user_id,
     )

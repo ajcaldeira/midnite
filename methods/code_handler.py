@@ -19,7 +19,7 @@ class FraudDetection:
     def __init__(self) -> None:
         self.db_session: Session = next(get_db())
 
-    def check_withdrawl_limit(self, amount: Union[int, float]) -> int | None:
+    def check_withdrawl_limit(self, amount: Union[int, float]) -> AlertCodes | None:
         """
         Check if the withdrawl amount exceeds the limit
 
@@ -38,7 +38,7 @@ class FraudDetection:
             logger.error(f"An unknown error occured: {error}")
             raise
 
-    def check_consecutive_withdrawls(self, user_id: str) -> int | None:
+    def check_consecutive_withdrawls(self, user_id: str) -> AlertCodes | None:
         """
         Check if the user has exceeded the consecutive withdrawls limit
 
@@ -80,7 +80,7 @@ class FraudDetection:
 
     def check_consecutive_increasing_deposits(
         self, user_id: str, deposit_amount: float
-    ) -> int | None:
+    ) -> AlertCodes | None:
         """
         Check if the user has exceeded the consecutive increasing deposits limit
 
@@ -125,7 +125,7 @@ class FraudDetection:
 
     def check_accumulate_deposit_amount_over_window(
         self, user_id: str, transaction_amount: float, second_received: int
-    ) -> int | None:
+    ) -> AlertCodes | None:
         """
         Check if the user has exceeded the accumulated deposit limit over a 30 second window
 
@@ -175,7 +175,7 @@ class FraudDetection:
         user_id: str,
         transaction_type: str,
         second_received: int,
-    ) -> list[int | None]:
+    ) -> list[AlertCodes | None]:
         """
         Run the fraud detection checks
 
