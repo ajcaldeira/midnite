@@ -13,7 +13,7 @@ pre-commit:
 # make run-tests - run tests
 .PHONY: run-tests
 run-tests: rebuild-system
-	poetry run pytest
+	docker exec midnite_backend_container pytest
 	$(MAKE) kill-system
 
 .PHONY: start-database
@@ -33,10 +33,8 @@ kill-system:
 rebuild-system: kill-system
 	docker compose build --no-cache
 	docker compose up -d
-	poetry run alembic upgrade head
-	poetry run python tests/populate.py
 
 .PHONY: run-me
 run-me: rebuild-system
-	poetry run python -m main
+	docker exec midnite_backend_container python -m main
 	$(MAKE) kill-system

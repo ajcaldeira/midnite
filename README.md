@@ -57,19 +57,26 @@ If the Docker setup fails or is not preferred, you can run the application manua
 
 #### Prerequisites
 1. Install [Poetry](https://python-poetry.org/docs/#installing-with-pipx).
-2. Set up the database container:
+2. Set up the virtual environment & activate:
+   ```bash
+   poetry env use 3.11.5 #or your python version
+   ```
+   ```bash
+   poetry shell
+   ```
+3. Set up the database container:
    ```bash
    docker-compose up -d db
    ```
-3. Perform a database migration:
+4. Perform a database migration:
    ```bash
    alembic upgrade head
    ```
-4. Install dependencies
+5. Install dependencies
    ```bash
    poetry update
    ```
-5. Insert a test user:
+6. Insert a test user:
    ```bash
    poetry run python tests/populate.py
    ```

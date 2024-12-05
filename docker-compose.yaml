@@ -3,9 +3,14 @@ services:
   app:
     build: .
     container_name: midnite_backend_container
-    command: ["sh", "-c", "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"]
+    command: ["sh", "-c", "alembic upgrade head && python tests/populate.py && uvicorn main:app --host 0.0.0.0 --port 8000"]
     environment:
       MIDNITE_API_URL: "http://app:8000"  # Use service name for internal communication
+      DB_DEV_USERNAME: admin
+      DB_DEV_PASSWORD: admin
+      DB_DEV_HOST: db
+      DB_DEV_PORT: 5432
+      DB_DEV_NAME: project-midnite
     depends_on:
       db:
         condition: service_healthy

@@ -19,7 +19,7 @@ def read_event(
         second_received=int(payload.t),
     )
     code_list = [c.value for c in codes if c is not None]
-    alert_flag = True if codes else False
+    alert_flag = True if code_list else False
     return EventResponse(
         alert=alert_flag,
         alert_codes=code_list,

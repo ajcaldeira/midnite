@@ -85,7 +85,6 @@ def test_no_error_codes(test_client, test_db, create_transaction):
 
     create_transaction("1", "withdraw", 50, 1, user_id)
     create_transaction("2", "deposit", 60, 3, user_id)
-    create_transaction("3", "withdraw", 80, 9, user_id)
 
     # Act
     response = test_client.post(
@@ -95,6 +94,6 @@ def test_no_error_codes(test_client, test_db, create_transaction):
 
     # Assert
     assert response.status_code == 200
+    assert response.json()["alert_codes"] == []
     assert response.json()["alert"] is False
     assert response.json()["user_id"] == user_id
-    assert response.json()["alert_codes"] == []

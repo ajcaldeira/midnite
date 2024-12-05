@@ -8,6 +8,7 @@ RUN poetry config virtualenvs.create false \
     && poetry install --no-interaction --no-ansi
 
 COPY . /midnite/
+RUN rm -f .env
 
 ENV PYTHONPATH=/
 EXPOSE 80
